@@ -1,0 +1,805 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>What works for you? — Date Availability</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #FAFAFA;
+    --card: #FFFFFF;
+    --border: #E5E7EB;
+    --text-primary: #111827;
+    --text-secondary: #6B7280;
+    --text-muted: #9CA3AF;
+    --accent: #2563EB;
+    --accent-soft: #EFF4FE;
+    --free: #16A34A;
+    --free-soft: #EAF7EE;
+    --maybe: #D97706;
+    --maybe-soft: #FDF3E3;
+    --no: #DC2626;
+    --no-soft: #FDEBEB;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #EDEEF0;
+    font-family: "Inter", system-ui, sans-serif;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 16px;
+  }
+
+  .phone {
+    width: 390px;
+    max-width: 100%;
+    background: var(--bg);
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.16);
+  }
+
+  .status-bar {
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    color: var(--text-primary);
+  }
+  .status-bar .time { font-size: 15px; font-weight: 600; }
+  .status-icons { display: flex; align-items: center; gap: 6px; color: var(--text-primary); }
+  .status-icons svg { display: block; }
+
+  .wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 0 20px 28px;
+  }
+
+  .header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header-row .icon-btn {
+    width: 20px; height: 20px;
+    color: var(--text-secondary);
+    display: flex; align-items: center; justify-content: center;
+    background: none; border: none; padding: 0; cursor: pointer;
+  }
+  .trip-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+  .spacer { width: 20px; height: 20px; }
+
+  .title-block { display: flex; flex-direction: column; gap: 6px; }
+  .title-block h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .title-block p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--text-secondary);
+  }
+
+  .host-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    transition: opacity 0.2s ease;
+  }
+  .host-banner.accepted { opacity: 0; height: 0; padding-top: 0; padding-bottom: 0; margin: -20px 0 0; overflow: hidden; border-width: 0; pointer-events: none; }
+  .host-banner .cal-icon { color: var(--accent); flex-shrink: 0; }
+  .host-banner .banner-text { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+  .host-banner .banner-title { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  .host-banner .banner-sub { font-size: 11px; color: var(--text-secondary); }
+  .host-banner .select-all {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    text-decoration: underline;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    flex-shrink: 0;
+  }
+
+  .legend { display: flex; align-items: center; gap: 14px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-item .swatch { width: 8px; height: 8px; border-radius: 2px; }
+  .legend-item span { font-size: 11px; color: var(--text-secondary); }
+
+  .month-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .month-nav button {
+    background: none; border: none; padding: 4px; cursor: not-allowed;
+    color: var(--text-muted); display: flex; align-items: center; justify-content: center;
+  }
+  .month-nav .month-label { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+
+  .weekday-row {
+    display: flex;
+    justify-content: space-between;
+  }
+  .weekday-row span {
+    width: 44px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  .calendar { display: flex; flex-direction: column; gap: 6px; user-select: none; -webkit-user-select: none; touch-action: none; }
+  .week-row { display: flex; justify-content: space-between; }
+
+  .day-cell {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-primary);
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    position: relative;
+  }
+  .day-cell.out-of-month { color: var(--text-muted); cursor: default; }
+  .day-cell.proposed {
+    border: 1px dashed var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+    background: var(--accent-soft);
+  }
+  .day-cell.pending {
+    background: var(--accent);
+    color: #FFFFFF;
+    font-weight: 700;
+  }
+  .day-cell.state-free { background: var(--free); color: #FFFFFF; font-weight: 700; border-color: transparent; }
+  .day-cell.state-maybe { background: var(--maybe-soft); color: var(--maybe); font-weight: 700; border: 1.5px solid var(--maybe); }
+  .day-cell.state-no { background: transparent; color: var(--no); font-weight: 700; border: 1px solid var(--no); }
+  .day-cell.range-start.state-free, .day-cell.range-end.state-free { box-shadow: inset 0 0 0 2px #FFFFFF44; }
+
+  .shelf-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: 0.3px;
+  }
+
+  .shelf {
+    display: flex;
+    flex-direction: column;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .shelf:empty { display: none; }
+
+  .chip { background: var(--card); }
+  .chip + .chip { border-top: 1px solid var(--border); }
+
+  .chip-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 14px;
+    cursor: pointer;
+  }
+  .chip-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .chip-dot.state-free { background: var(--free); }
+  .chip-dot.state-maybe { background: var(--maybe); }
+  .chip-dot.state-no { background: var(--no); }
+
+  .chip-text { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+  .chip-range { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+  .chip-meta { font-size: 11px; color: var(--text-secondary); }
+
+  .chip-state-toggle {
+    display: flex;
+    gap: 2px;
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 2px;
+    flex-shrink: 0;
+  }
+  .chip-state-toggle button {
+    border: none;
+    background: none;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 5px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text-secondary);
+  }
+  .chip-state-toggle button.active.state-free { background: var(--free); color: #FFFFFF; }
+  .chip-state-toggle button.active.state-maybe { background: var(--maybe); color: #FFFFFF; }
+  .chip-state-toggle button.active.state-no { background: var(--no); color: #FFFFFF; }
+
+  .chip-icon-btn {
+    width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    background: none; border: none; cursor: pointer;
+    color: var(--text-muted); flex-shrink: 0;
+  }
+  .chip-icon-btn:hover { color: var(--text-secondary); }
+
+  .chip-note-panel {
+    display: none;
+    padding: 0 14px 13px 32px;
+  }
+  .chip-note-panel.open { display: block; }
+  .chip-note-panel textarea {
+    width: 100%;
+    resize: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-family: inherit;
+    font-size: 12px;
+    color: var(--text-primary);
+    background: var(--bg);
+  }
+  .chip-note-preview {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 0 14px 12px 32px;
+    font-size: 11px;
+    font-style: italic;
+    color: var(--text-secondary);
+  }
+  .chip-note-preview svg { flex-shrink: 0; margin-top: 1px; }
+
+  .add-range {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  .cant-panel {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+  }
+  .cant-panel.open { display: flex; }
+  .cant-panel p { margin: 0; font-size: 13px; color: var(--text-primary); font-weight: 600; }
+  .cant-panel .cant-actions { display: flex; flex-direction: column; gap: 8px; }
+  .cant-panel button {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .cant-panel .suggest-btn { background: var(--accent-soft); color: var(--accent); border: none; }
+  .cant-panel .decline-btn { background: none; color: var(--text-secondary); border: 1px solid var(--border); }
+
+  .declined-state {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+  }
+  .declined-state.open { display: flex; }
+  .declined-state p { margin: 0; font-size: 13px; color: var(--text-secondary); flex: 1; }
+  .declined-state button {
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    background: none;
+    border: none;
+    text-decoration: underline;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .cta {
+    width: 100%;
+    padding: 15px;
+    border-radius: 12px;
+    background: var(--accent);
+    color: #FFFFFF;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+  .cta:active { transform: scale(0.98); }
+  .cta.confirmed { background: var(--free); }
+  .cta:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; }
+
+  .cant-make-it {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #111827;
+    color: #FFFFFF;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 12px 18px;
+    border-radius: 10px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    white-space: nowrap;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <span class="status-icons">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 5.5C4.5 2.3 11.5 2.3 15 5.5M3.3 8C5.7 5.9 10.3 5.9 12.7 8M5.6 10.5C6.9 9.4 9.1 9.4 10.4 10.5M8 13H8.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg width="22" height="14" viewBox="0 0 22 14" fill="none"><rect x="1" y="1" width="18" height="12" rx="3" stroke="currentColor" stroke-width="1.2"/><rect x="3" y="3" width="14" height="8" rx="1.5" fill="currentColor"/><rect x="20" y="5" width="1.5" height="4" rx="0.75" fill="currentColor"/></svg>
+    </span>
+  </div>
+
+  <div class="wrapper">
+    <div class="header-row">
+      <button class="icon-btn" aria-label="Back" disabled>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M12.5 4.5L7 10l5.5 5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <span class="trip-name">Cabo Crew</span>
+      <span class="spacer"></span>
+    </div>
+
+    <div class="title-block">
+      <h1>What works for you?</h1>
+      <p>Tap the proposed dates to accept them, or drag to pick your own free stretch.</p>
+    </div>
+
+    <div class="host-banner" id="hostBanner">
+      <svg class="cal-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M2 6.5H14M5 1.5V3.5M11 1.5V3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <div class="banner-text">
+        <span class="banner-title">Maya proposed Aug 12–16</span>
+        <span class="banner-sub">Tap the range below, or select all</span>
+      </div>
+      <button class="select-all" id="selectAllBtn">Select all</button>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><span class="swatch" style="background:var(--free)"></span><span>Free</span></div>
+      <div class="legend-item"><span class="swatch" style="background:var(--maybe)"></span><span>Maybe</span></div>
+      <div class="legend-item"><span class="swatch" style="background:var(--no)"></span><span>Can't</span></div>
+    </div>
+
+    <div class="month-nav">
+      <button aria-label="Previous month" disabled>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3.5L5.5 8l4.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <span class="month-label">August 2026</span>
+      <button aria-label="Next month" disabled>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3.5L10.5 8 6 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+
+    <div class="weekday-row">
+      <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+    </div>
+
+    <div class="calendar" id="calendar"></div>
+
+    <div class="shelf-label" id="shelfLabel">Your selections · 0</div>
+    <div class="shelf" id="shelf"></div>
+
+    <button class="add-range" id="addRangeBtn">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5V12.5M1.5 7H12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      Add another range
+    </button>
+
+    <div class="cant-panel" id="cantPanel">
+      <p>No worries — what would help?</p>
+      <div class="cant-actions">
+        <button class="suggest-btn" id="suggestBtn">Suggest different dates to Maya</button>
+        <button class="decline-btn" id="declineBtn">I can't make this trip</button>
+      </div>
+    </div>
+
+    <div class="declined-state" id="declinedState">
+      <p>You've let Maya know you can't make it.</p>
+      <button id="undoDeclineBtn">Undo</button>
+    </div>
+
+    <button class="cta" id="ctaButton">Confirm my availability</button>
+    <div class="cant-make-it" id="cantMakeItLink">I can't make any of these dates</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  var YEAR = 2026, MONTH = 7;
+  var HOST_START = new Date(YEAR, MONTH, 12);
+  var HOST_END = new Date(YEAR, MONTH, 16);
+
+  var selections = [];
+  var nextId = 1;
+  var hostAccepted = false;
+  var declined = false;
+
+  var calendarEl = document.getElementById('calendar');
+  var shelfEl = document.getElementById('shelf');
+  var shelfLabelEl = document.getElementById('shelfLabel');
+  var hostBannerEl = document.getElementById('hostBanner');
+  var ctaButton = document.getElementById('ctaButton');
+  var toastEl = document.getElementById('toast');
+  var cantPanel = document.getElementById('cantPanel');
+  var declinedState = document.getElementById('declinedState');
+
+  function fmtKey(d) { return d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate(); }
+  function sameDay(a,b) { return fmtKey(a) === fmtKey(b); }
+  function addDays(d, n) { var r = new Date(d); r.setDate(r.getDate()+n); return r; }
+  function fmtShort(d) { return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+  function fmtRange(start, end) {
+    if (sameDay(start,end)) return fmtShort(start);
+    return fmtShort(start) + ' – ' + end.getDate();
+  }
+  function nightsBetween(start, end) { return Math.round((end - start) / 86400000); }
+
+  var gridStart = new Date(YEAR, MONTH, 1);
+  gridStart.setDate(gridStart.getDate() - gridStart.getDay());
+  var dayCells = {};
+
+  for (var w = 0; w < 6; w++) {
+    var row = document.createElement('div');
+    row.className = 'week-row';
+    for (var i = 0; i < 7; i++) {
+      var date = addDays(gridStart, w*7 + i);
+      var cell = document.createElement('div');
+      cell.className = 'day-cell';
+      cell.textContent = date.getDate();
+      var key = fmtKey(date);
+      cell.dataset.key = key;
+      if (date.getMonth() !== MONTH) cell.classList.add('out-of-month');
+      if (date >= HOST_START && date <= HOST_END) cell.classList.add('proposed');
+      dayCells[key] = { el: cell, date: date };
+      row.appendChild(cell);
+    }
+    calendarEl.appendChild(row);
+  }
+
+  function forEachDayInRange(start, end, fn) {
+    var d = new Date(start);
+    while (d <= end) { fn(d); d = addDays(d, 1); }
+  }
+
+  function repaintCalendar() {
+    Object.keys(dayCells).forEach(function (key) {
+      var c = dayCells[key];
+      c.el.classList.remove('state-free','state-maybe','state-no','pending','range-start','range-end');
+    });
+    selections.forEach(function (sel) {
+      forEachDayInRange(sel.start, sel.end, function (d) {
+        var c = dayCells[fmtKey(d)];
+        if (!c) return;
+        c.el.classList.add('state-' + sel.state);
+        c.el.classList.remove('proposed');
+      });
+      var s = dayCells[fmtKey(sel.start)], e = dayCells[fmtKey(sel.end)];
+      if (s) s.el.classList.add('range-start');
+      if (e) e.el.classList.add('range-end');
+    });
+    if (!hostAccepted) {
+      forEachDayInRange(HOST_START, HOST_END, function (d) {
+        var c = dayCells[fmtKey(d)];
+        var covered = selections.some(function (sel) { return d >= sel.start && d <= sel.end; });
+        if (c && !covered) c.el.classList.add('proposed');
+      });
+    }
+  }
+
+  function addSelection(start, end, state) {
+    if (start > end) { var t = start; start = end; end = t; }
+    var sel = { id: nextId++, start: start, end: end, state: state || 'free', note: '' };
+    selections.push(sel);
+    if (start <= HOST_END && end >= HOST_START) hostAccepted = true;
+    render();
+    return sel;
+  }
+
+  function removeSelection(id) {
+    selections = selections.filter(function (s) { return s.id !== id; });
+    render();
+  }
+
+  function render() {
+    repaintCalendar();
+    hostBannerEl.classList.toggle('accepted', hostAccepted);
+    shelfLabelEl.textContent = 'Your selections · ' + selections.length;
+    shelfEl.innerHTML = '';
+    selections.slice().sort(function(a,b){ return a.start - b.start; }).forEach(function (sel) {
+      shelfEl.appendChild(buildChip(sel));
+    });
+    updateCta();
+  }
+
+  function stateLabel(state) {
+    return state === 'free' ? 'Free' : state === 'maybe' ? 'Maybe' : "Can't";
+  }
+
+  function buildChip(sel) {
+    var wrap = document.createElement('div');
+    wrap.className = 'chip';
+
+    var top = document.createElement('div');
+    top.className = 'chip-top';
+
+    var dot = document.createElement('span');
+    dot.className = 'chip-dot state-' + sel.state;
+    top.appendChild(dot);
+
+    var text = document.createElement('div');
+    text.className = 'chip-text';
+    var rangeEl = document.createElement('div');
+    rangeEl.className = 'chip-range';
+    rangeEl.textContent = fmtRange(sel.start, sel.end);
+    var metaEl = document.createElement('div');
+    metaEl.className = 'chip-meta';
+    var n = nightsBetween(sel.start, sel.end);
+    metaEl.textContent = (n === 0 ? '1 day' : n + ' night' + (n===1?'':'s')) + ' · ' + stateLabel(sel.state);
+    text.appendChild(rangeEl);
+    text.appendChild(metaEl);
+    top.appendChild(text);
+
+    var toggle = document.createElement('div');
+    toggle.className = 'chip-state-toggle';
+    ['free','maybe','no'].forEach(function (state) {
+      var btn = document.createElement('button');
+      btn.textContent = state === 'free' ? 'Free' : state === 'maybe' ? 'Maybe' : "Can't";
+      btn.className = 'state-' + state + (sel.state === state ? ' active' : '');
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        sel.state = state;
+        render();
+      });
+      toggle.appendChild(btn);
+    });
+    top.appendChild(toggle);
+
+    var editBtn = document.createElement('button');
+    editBtn.className = 'chip-icon-btn';
+    editBtn.title = 'Add a note';
+    editBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9.5 1.8l2.7 2.7L4.9 11.8l-3.1.4.4-3.1L9.5 1.8z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>';
+
+    var delBtn = document.createElement('button');
+    delBtn.className = 'chip-icon-btn';
+    delBtn.title = 'Remove';
+    delBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
+    delBtn.addEventListener('click', function (e) { e.stopPropagation(); removeSelection(sel.id); });
+
+    top.appendChild(editBtn);
+    top.appendChild(delBtn);
+    wrap.appendChild(top);
+
+    var notePanel = document.createElement('div');
+    notePanel.className = 'chip-note-panel';
+    var textarea = document.createElement('textarea');
+    textarea.rows = 2;
+    textarea.placeholder = 'e.g. "Would have to leave a day early for work"';
+    textarea.value = sel.note;
+    textarea.addEventListener('input', function () { sel.note = textarea.value; });
+    textarea.addEventListener('blur', function () { render(); });
+    notePanel.appendChild(textarea);
+    wrap.appendChild(notePanel);
+
+    var notePreview = document.createElement('div');
+    notePreview.className = 'chip-note-preview';
+    notePreview.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="margin-top:1px"><path d="M1.5 2.5h9v6h-4l-2.5 2v-2h-2.5v-6z" stroke="currentColor" stroke-width="1"/></svg><span></span>';
+    notePreview.querySelector('span').textContent = sel.note;
+    if (!sel.note) notePreview.style.display = 'none';
+    wrap.appendChild(notePreview);
+
+    function openNoteEditor() {
+      notePanel.classList.add('open');
+      notePreview.style.display = 'none';
+      setTimeout(function () { textarea.focus(); }, 0);
+    }
+    top.addEventListener('click', function () { openNoteEditor(); });
+    editBtn.addEventListener('click', function (e) { e.stopPropagation(); openNoteEditor(); });
+    textarea.addEventListener('blur', function () {
+      notePanel.classList.remove('open');
+      if (sel.note) {
+        notePreview.querySelector('span').textContent = sel.note;
+        notePreview.style.display = 'flex';
+      }
+    });
+
+    return wrap;
+  }
+
+  function updateCta() {
+    ctaButton.disabled = selections.length === 0 && !declined;
+    ctaButton.classList.remove('confirmed');
+    ctaButton.textContent = 'Confirm my availability';
+  }
+
+  // Drag-to-select across day cells
+  var dragging = false, dragStartDate = null, dragCurrentDate = null;
+
+  function keyOfCellEl(el) {
+    var cell = el && el.closest ? el.closest('.day-cell') : null;
+    return cell ? cell.dataset.key : null;
+  }
+
+  function startDrag(date) {
+    dragging = true;
+    dragStartDate = date;
+    dragCurrentDate = date;
+    previewRange(date, date);
+  }
+
+  function updateDrag(date) {
+    if (!dragging) return;
+    dragCurrentDate = date;
+    previewRange(dragStartDate, dragCurrentDate);
+  }
+
+  function previewRange(a, b) {
+    var start = a < b ? a : b, end = a < b ? b : a;
+    Object.keys(dayCells).forEach(function (key) { dayCells[key].el.classList.remove('pending'); });
+    forEachDayInRange(start, end, function (d) {
+      var c = dayCells[fmtKey(d)];
+      if (c) c.el.classList.add('pending');
+    });
+  }
+
+  function endDrag() {
+    if (!dragging) return;
+    dragging = false;
+    Object.keys(dayCells).forEach(function (key) { dayCells[key].el.classList.remove('pending'); });
+    if (dragStartDate && dragCurrentDate) {
+      addSelection(dragStartDate, dragCurrentDate, 'free');
+      toast('Added ' + fmtRange(
+        dragStartDate < dragCurrentDate ? dragStartDate : dragCurrentDate,
+        dragStartDate < dragCurrentDate ? dragCurrentDate : dragStartDate
+      ) + ' as free');
+    }
+    dragStartDate = null; dragCurrentDate = null;
+  }
+
+  calendarEl.addEventListener('pointerdown', function (e) {
+    var key = keyOfCellEl(e.target);
+    if (!key || !dayCells[key]) return;
+    e.preventDefault();
+    startDrag(dayCells[key].date);
+  });
+
+  document.addEventListener('pointermove', function (e) {
+    if (!dragging) return;
+    var el = document.elementFromPoint(e.clientX, e.clientY);
+    var key = keyOfCellEl(el);
+    if (key && dayCells[key]) updateDrag(dayCells[key].date);
+  });
+
+  document.addEventListener('pointerup', endDrag);
+  document.addEventListener('pointercancel', endDrag);
+
+  document.getElementById('selectAllBtn').addEventListener('click', function () {
+    addSelection(new Date(HOST_START), new Date(HOST_END), 'free');
+    toast('Accepted Aug 12–16');
+  });
+
+  document.getElementById('addRangeBtn').addEventListener('click', function () {
+    calendarEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
+  document.getElementById('cantMakeItLink').addEventListener('click', function () {
+    cantPanel.classList.toggle('open');
+  });
+
+  document.getElementById('suggestBtn').addEventListener('click', function () {
+    cantPanel.classList.remove('open');
+    calendarEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    toast('Drag any free stretch to suggest it to Maya');
+  });
+
+  document.getElementById('declineBtn').addEventListener('click', function () {
+    declined = true;
+    cantPanel.classList.remove('open');
+    declinedState.classList.add('open');
+    ctaButton.style.display = 'none';
+    document.getElementById('cantMakeItLink').style.display = 'none';
+  });
+
+  document.getElementById('undoDeclineBtn').addEventListener('click', function () {
+    declined = false;
+    declinedState.classList.remove('open');
+    ctaButton.style.display = 'block';
+    document.getElementById('cantMakeItLink').style.display = 'block';
+    updateCta();
+  });
+
+  ctaButton.addEventListener('click', function () {
+    if (ctaButton.disabled) return;
+    ctaButton.classList.add('confirmed');
+    ctaButton.textContent = 'Availability confirmed ✓';
+    toast('Sent to Maya');
+  });
+
+  var toastTimer;
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 2200);
+  }
+
+  render();
+})();
+</script>
+
+</body>
+</html>
